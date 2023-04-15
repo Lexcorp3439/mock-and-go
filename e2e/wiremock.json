@@ -1,0 +1,11 @@
+-- http://localhost:8001/__admin/swagger-ui/#/Stub%20Mappings/post___admin_mappings
+{
+  "priority": 10,
+  "request": {
+    "method": "POST",
+    "url": "/identification"
+  },
+  "response": {
+    "proxyBaseUrl": "http://external:8090"
+  }
+}

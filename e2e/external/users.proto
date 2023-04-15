@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package users;
+
+option go_package = "/internal/pb/users;users";
+
+service Users {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
+  rpc RemoveUser(RemoveUserRequest) returns (RemoveUserResponse) {}
+  rpc GetInfo(GetInfoRequest) returns (GetInfoResponse) {}
+}
+
+message CreateUserRequest {
+  string fio = 1;
+  string phone = 2;
+  int32 age = 3;
+}
+
+message CreateUserResponse {
+  int32 user_id = 1;
+}
+
+message RemoveUserRequest {
+  int32 user_id = 1;
+}
+
+message RemoveUserResponse {
+}
+
+message GetInfoRequest {
+  int32 user_id = 1;
+}
+
+message GetInfoResponse {
+  int32 user_id = 1;
+  string fio = 2;
+  string phone = 3;
+  int32 age = 4;
+  Level level = 5;
+}
+
+enum Level {
+  ANON = 0;
+  FULL = 1;
+}
+

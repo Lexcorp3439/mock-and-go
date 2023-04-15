@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package complex;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "pkg/api/complex;complex";
+
+service Complex {
+  rpc CreateOrUpdateTemplate(TemplateRequest) returns (TemplateResponse) {}
+  rpc GetTemplateByName(GetTemplateByNameRequest) returns (TemplateResponse) {}
+  rpc GetTemplateList(GetTemplateListRequest) returns (GetTemplateListResponse) {}
+  rpc DeleteTemplate(DeleteTemplateRequest) returns (DeleteTemplateResponse) {}
+  rpc BindPhoneWithTemplate (BindPhoneWithTemplateRequest) returns (google.protobuf.Empty) {}
+}
+
+message TemplateInfo {
+  string template_name = 1;
+  string description = 2;
+  int32 status = 3;
+}
+
+message TemplateRequest {
+  string template_name = 1;
+  int32 status = 2;
+  optional string description = 3;
+}
+
+message GetTemplateListResponse {
+  repeated TemplateInfo templates = 1;
+  uint64 total_items = 2;
+}
+
+message TemplateResponse {
+  TemplateInfo template = 1;
+}
+
+message GetTemplateListRequest {
+  message Filter {
+    // фильтр по имена шаблона
+    optional string template_name = 1;
+    optional string template_description = 2;
+    // Дата создания с
+    optional google.protobuf.Timestamp created_at_from = 3;
+    // Дата создания по
+    optional google.protobuf.Timestamp created_at_to = 4;
+    // Дата обновления с
+    optional google.protobuf.Timestamp updated_at_from = 5;
+    // Дата обновления по
+    optional google.protobuf.Timestamp updated_at_to = 6;
+  }
+  // смещение, рассчитывается как (page - 1) * per_page
+  uint64 page = 1;
+  // количество сущностей на странице
+  uint64 per_page = 2;
+  Filter filter = 3;
+}
+
+message GetTemplateByNameRequest {
+  string template_name = 1;
+}
+
+message DeleteTemplateRequest {
+  string template_name = 1;
+}
+
+message DeleteTemplateResponse {
+  string template_name = 1;
+}
+
+message ResponseCode {
+  string name = 1;
+  string code = 2;
+  string description = 3;
+}
+
+message BindPhoneWithTemplateRequest {
+  string name = 1;
+  string phone_number = 2;
+}
+
+enum BindingStatus {
+  CREATED = 0;
+  COMPLETE = 1;
+  EXPIRED = 2;
+}

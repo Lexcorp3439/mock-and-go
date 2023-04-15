@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package identification;
+
+option go_package = "/internal/pb/identification;identification";
+
+
+service Identification {
+  rpc Upgrade(UpgradeRequest) returns (UpgradeResponse) {}
+  rpc UpgradeV2(UpgradeRequest) returns (UpgradeResponse) {}
+  rpc UpgradeV3(UpgradeRequest) returns (UpgradeResponse) {}
+}
+
+message UpgradeRequest {
+  int32 user_id = 1;
+}
+
+message UpgradeResponse {
+  string identification_id = 1;
+}

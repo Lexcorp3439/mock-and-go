@@ -1,0 +1,104 @@
+version: "3.8"
+services:
+
+  wiremock:
+    container_name: wiremock
+    image: wiremock/wiremock:2.35.0
+    ports:
+      - "8001:8080"
+
+  users:
+    build:
+      context: ./users_service/
+      args:
+        DATABASE_DSN: postgres://postgres:postgres@postgres-users:5432/users?sslmode=disable
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/app
+    environment:
+      - DATABASE_DSN=postgres://postgres:postgres@postgres-users:5432/users?sslmode=disable
+    restart: always
+    depends_on:
+      - postgres-users
+    links:
+      - postgres-users
+
+  postgres-users:
+    container_name: postgres-users
+    image: postgres:15.2
+    ports:
+      - "5441:5432"
+    volumes:
+      - postgres-users:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=users
+    restart: always
+
+  identification:
+    build:
+      context: ./identification_service/
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      - EXTERNAL_API=http://wiremock:8080
+      - EXTERNAL_API_2=http://external:8090
+      - COMPLEX_API=http://complex:8090
+      - USERS_API=users:8080
+      - env=stg
+    volumes:
+      - ./:/app
+    restart: always
+
+  complex:
+    build:
+      context: ./complex/
+      args:
+        DATABASE_DSN: postgres://postgres:postgres@postgres-complex:5432/complex?sslmode=disable
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
+      - "8090:8090"
+    volumes:
+      - ./:/app
+    environment:
+      - DATABASE_DSN=postgres://postgres:postgres@postgres-complex:5432/complex?sslmode=disable
+    restart: always
+    depends_on:
+      - postgres-complex
+    links:
+      - postgres-complex
+
+  postgres-complex:
+    container_name: postgres-complex
+    image: postgres:15.2
+    ports:
+      - "5440:5432"
+    volumes:
+      - postgres-complex:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=complex
+    restart: always
+
+  external:
+    build:
+      context: ./external/
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8080"
+      - "8091:8090"
+    volumes:
+      - ./:/app
+    restart: always
+
+volumes:
+  postgres-complex:
+  postgres-users:

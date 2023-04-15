@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package public;
+
+import "google/api/annotations.proto";
+
+option go_package = "pkg/api/public;public";
+
+service Public {
+  rpc Identification(IdentificationRequest) returns (IdentificationResponse) {
+    option (google.api.http) = {
+      post : "/identification"
+    };
+  }
+}
+
+message IdentificationRequest {
+  string phone = 1;
+}
+
+message IdentificationResponse {
+  string id = 1;
+  int32 status = 2;
+}
+
+enum BindingStatus {
+  CREATED = 0;
+  COMPLETE = 1;
+  EXPIRED = 2;
+}
