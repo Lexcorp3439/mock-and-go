@@ -6,11 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"heisenbug/identification/internal/pkg/model"
-	"io"
 	"net/http"
-	"os"
 	"time"
+
+	"heisenbug/identification/internal/config"
+	"heisenbug/identification/internal/pkg/adapter"
+	"heisenbug/identification/internal/pkg/model"
 )
 
 // Client is an interface for calling externak.Client.
@@ -41,8 +42,7 @@ func NewClient() Client {
 
 // Identification - .
 func (c *client) Identification(ctx context.Context, phone string) (*model.IdentificationResponse, error) {
-	api := os.Getenv("COMPLEX_API")
-	uri := fmt.Sprintf("%s/%s", api, "identification") // #nosec
+	uri := fmt.Sprintf("%s/%s", config.ComplexApi, "identification") // #nosec
 
 	body := model.IdentificationRequest{
 		Phone: phone,
@@ -51,12 +51,8 @@ func (c *client) Identification(ctx context.Context, phone string) (*model.Ident
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequestWithContext(
-		ctx,
-		"POST",
-		uri,
-		bytes.NewBuffer(bodyBytes),
-	)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", uri, bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -67,16 +63,6 @@ func (c *client) Identification(ctx context.Context, phone string) (*model.Ident
 	if response.StatusCode != 200 {
 		return nil, errors.New("not 200 status code")
 	}
-	defer response.Body.Close()
-	respBody, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
 
-	var result model.IdentificationResponse
-	err = json.Unmarshal(respBody, &result)
-	if err != nil {
-		return nil, err
-	}
-	return &result, nil
+	return adapter.ResponseToIdentificationModel(response)
 }

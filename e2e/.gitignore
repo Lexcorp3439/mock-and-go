@@ -6,5 +6,7 @@
 .DS_Store
 /.idea
 /.vscode
+/tests/allure-results
+/allure-results
 
 cover.out

@@ -2,14 +2,14 @@ package store
 
 import (
 	"context"
-	"os"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"heisenbug/users/internal/config"
 )
 
 func ConnectToPostgres() (*pgxpool.Pool, error) {
-	pool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_DSN"))
+	pool, err := pgxpool.New(context.Background(), config.DatabaseDsn)
 	if err != nil {
 		return nil, err
 	}

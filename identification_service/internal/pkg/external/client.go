@@ -6,11 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"heisenbug/identification/internal/pkg/model"
-	"io"
 	"net/http"
-	"os"
 	"time"
+
+	"heisenbug/identification/internal/config"
+	"heisenbug/identification/internal/pkg/adapter"
+	"heisenbug/identification/internal/pkg/model"
 )
 
 // Client is an interface for calling externak.Client.
@@ -41,9 +42,7 @@ func NewClient() Client {
 
 // Identification - .
 func (c *client) Identification(ctx context.Context, phone string) (*model.IdentificationResponse, error) {
-	api := os.Getenv("EXTERNAL_API")
-	uri := fmt.Sprintf("%s/%s", api, "identification") // #nosec
-	fmt.Println(uri)
+	uri := fmt.Sprintf("%s/%s", config.ExternalApi, "identification") // #nosec
 
 	body := model.IdentificationRequest{
 		Phone: phone,
@@ -52,33 +51,18 @@ func (c *client) Identification(ctx context.Context, phone string) (*model.Ident
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequestWithContext(
-		ctx,
-		"POST",
-		uri,
-		bytes.NewBuffer(bodyBytes),
-	)
-	if err != nil {
-		return nil, err
-	}
-	response, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(response.StatusCode)
-	if response.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("not 200 status code %d", response.Status))
-	}
-	defer response.Body.Close()
-	respBody, err := io.ReadAll(response.Body)
+	req, err := http.NewRequestWithContext(ctx, "POST", uri, bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return nil, err
 	}
 
-	var result model.IdentificationResponse
-	err = json.Unmarshal(respBody, &result)
+	response, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	return &result, nil
+
+	if response.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("not 200 status code %d", response.Status))
+	}
+	return adapter.ResponseToIdentificationModel(response)
 }
